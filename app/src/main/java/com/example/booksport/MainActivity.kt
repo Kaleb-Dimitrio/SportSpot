@@ -4,14 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +22,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
-// Define BookSportTheme
 @Composable
 fun BookSportTheme(content: @Composable () -> Unit) {
     MaterialTheme(
@@ -36,137 +40,164 @@ fun BookSportTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun MainScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(painterResource(id = R.drawable.bg_home_wave))
-    ) {
-        // Header Section
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Selamat Datang",
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "Lebron James",
-                    color = Color.White,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Image(
-                painter = painterResource(id = R.drawable.ic_profile),
-                contentDescription = "Profile",
-                modifier = Modifier.size(50.dp)
-            ) // Fixed: Moved closing parenthesis to correct position
-        }
+fun MainScreen(
+    onSportSelected: (String) -> Unit,
+    onProfileClicked: () -> Unit
+) {
+    val sports = listOf(
+        Sport("Badminton", "Lapangan Badminton", R.drawable.ic_badminton),
+        Sport("Futsal", "Lapangan Futsal", R.drawable.ic_futsal),
+        Sport("Basket", "Lapangan Basket", R.drawable.ic_basketball)
+    )
 
-        // Search Bar
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            leadingIcon = {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.White
-                )
-            },
-            placeholder = {
-                Text("Mau olahraga apa?", color = Color.White)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                textColor = Color.White,
-                unfocusedBorderColor = Color.Transparent,
-                backgroundColor = Color.Transparent
-            ),
-            shape = MaterialTheme.shapes.medium
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredSports = sports.filter { sport ->
+        sport.title.contains(searchQuery, ignoreCase = true) ||
+                sport.subtitle.contains(searchQuery, ignoreCase = true)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.bg_home_wave),
+            contentDescription = "Background",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
 
-        // Banner Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            elevation = 5.dp,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.bg_banner),
-                contentDescription = "Banner",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        // Transport Title
-        Text(
-            text = "Pilih Olahraga",
-            color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 20.dp, top = 10.dp)
-        )
-
-        // Transport Cards
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 20.dp)
         ) {
-            TransportCard(
-                title = "Badminton",
-                subtitle = "Lapangan Badminton",
-                icon = painterResource(id = R.drawable.ic_plane),
-                background = painterResource(id = R.drawable.bg_home_wave)
+            // Profile Header Section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Selamat Datang",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "Lebron James",
+                        color = Color.White,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                IconButton(
+                    onClick = onProfileClicked,
+                    modifier = Modifier.size(50.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_profile),
+                        contentDescription = "Profile",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.White
+                    )
+                },
+                placeholder = {
+                    Text("Mau olahraga apa?", color = Color.White)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    unfocusedBorderColor = Color.Transparent,
+                    backgroundColor = Color.Transparent
+                ),
+                shape = MaterialTheme.shapes.medium
             )
 
-            TransportCard(
-                title = "Futsal",
-                subtitle = "Lapangan Futsal",
-                icon = painterResource(id = R.drawable.ic_ship),
-                background = painterResource(id = R.drawable.bg_home_wave)
+            // Banner Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                elevation = 5.dp,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.bg_banner),
+                    contentDescription = "Banner",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Sports Title
+            Text(
+                text = "Pilih Olahraga",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 24.dp, top = 8.dp)
             )
 
-            TransportCard(
-                title = "Basket",
-                subtitle = "Lapangan Basket",
-                icon = painterResource(id = R.drawable.ic_train),
-                background = painterResource(id = R.drawable.bg_home_wave)
-            )
+            // Sports Cards
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                if (filteredSports.isEmpty()) {
+                    Text(
+                        text = "Tidak ditemukan olahraga yang sesuai",
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    filteredSports.forEach { sport ->
+                        SportCard(
+                            title = sport.title,
+                            subtitle = sport.subtitle,
+                            icon = painterResource(id = sport.iconRes),
+                            background = painterResource(id = R.drawable.bg_home_wave),
+                            onClick = { onSportSelected(sport.title) }
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TransportCard(
+fun SportCard(
     title: String,
     subtitle: String,
     icon: Painter,
-    background: Painter
+    background: Painter,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp)
-            .height(150.dp),
-        elevation = 5.dp,
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .height(150.dp)
+            .clickable(onClick = onClick),
+        elevation = 8.dp,
         shape = MaterialTheme.shapes.medium
     ) {
-        Box(modifier = Modifier.fillMaxSize()) { // Fixed: Removed extra parenthesis
+        Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = background,
                 contentDescription = null,
@@ -192,7 +223,7 @@ fun TransportCard(
                 ) {
                     Text(
                         text = subtitle,
-                        color = Color(0xFF6200EE), // primary color
+                        color = Color(0xFF6200EE),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(6.dp)
@@ -213,17 +244,51 @@ fun TransportCard(
     }
 }
 
+@Composable
+fun BookSportApp() {
+    val navController = rememberNavController()
+    val bookings = remember { mutableStateListOf<BookingData>() }
+
+    NavHost(
+        navController = navController,
+        startDestination = "main"
+    ) {
+        composable("main") {
+            MainScreen(
+                onSportSelected = { sportType ->
+                    navController.navigate("booking/$sportType")
+                },
+                onProfileClicked = {
+                    navController.navigate("bookings")
+                }
+            )
+        }
+        composable("booking/{sportType}") { backStackEntry ->
+            val sportType = backStackEntry.arguments?.getString("sportType") ?: ""
+            BookingFormScreen(
+                sportType = sportType,
+                onBack = { navController.popBackStack() },
+                onSubmit = { bookingData ->
+                    bookings.add(bookingData)
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable("bookings") {
+            BookingHistoryScreen(
+                bookings = bookings,
+                onBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             BookSportTheme {
-                Surface(
-                    color = MaterialTheme.colors.background,
-                    modifier = Modifier.fillMaxSize() // Added modifier for proper sizing
-                ) {
-                    MainScreen()
-                }
+                BookSportApp()
             }
         }
     }

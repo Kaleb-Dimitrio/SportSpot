@@ -37,7 +37,7 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
+        viewBinding = false
         compose = true
     }
     composeOptions {
@@ -50,7 +50,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4"   )
 
     // Jetpack Compose Dependencies
     implementation("androidx.compose.ui:ui:1.6.8")
@@ -90,6 +91,14 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
 
+    // Date/Time picker
+    implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
+    implementation ("io.github.vanpra.compose-material-dialogs:core:0.9.0")
+    coreLibraryDesugaring ("com.android.tools:desugar_jdk_libs:2.0.4")
+
+    implementation ("androidx.navigation:navigation-compose:2.7.7")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.6.8")
     // Location
-    implementation("com.github.delight-im:Android-SimpleLocation:v1.1.0")
+    implementation("com.github.delight-im:Android-SimpleLocation:v1.1.0"
+    )
 }
